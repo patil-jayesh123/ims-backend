@@ -26,7 +26,7 @@ app.use('/admin',admin)
 
 //-------------------------------------------------------------
 const PORT=2000
-const HOST='127.0.0.1'
+const HOST='0.0.0.0'
 
 app.listen(PORT,HOST,()=>{
     console.log(`server is running on http://${HOST}:${PORT}`);    

@@ -360,6 +360,16 @@ Router.get("/courses",auth,async(req,res)=>{
   }
 })
 
+//-------------delete course-------------
+Router.delete("/coursedelete/:id", async (req, res) => {
+  try {
+    await coursechema.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: "course deleted" });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
 
 //----------------------------------------------------------------------------
 // Forgot password

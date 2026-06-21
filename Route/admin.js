@@ -10,8 +10,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const coursechema = require("../model/coursechema");
 
-require('dotenv').config();
-
+require("dotenv").config();
 
 Router.get("/", (req, res) => {
   res.send("admin route");
@@ -58,12 +57,67 @@ Router.post("/register", async (req, res) => {
 });
 
 //---------------------login page-----------------------------------------
+// Router.post("/login", async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     // find user by email
+//     const user = await adminschema.findOne({ email });
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+
+//     // compare hashed password
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid Password",
+//       });
+//     }
+
+//     // success response
+//     // create token
+//     const token = jwt.sign(
+//       { id: user._id, email: user.email },
+//       "jayu", // Strong secret key use karo
+//       { expiresIn: "24h" } // token valid for 24h hours
+//     );
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Login successfully ✅",
+//       token: token,
+//       data: user,
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       success: false,
+//       message: "Login failed ❌",
+//       error: err,
+//     });
+//   }
+// });
+
+//---------------------login page-----------------------------------------
 Router.post("/login", async (req, res) => {
+  console.log("🔥 LOGIN API HIT");
+
   try {
+    console.log("📩 Body:", req.body);
+
     const { email, password } = req.body;
 
-    // find user by email
+    console.time("findUser");
     const user = await adminschema.findOne({ email });
+    console.timeEnd("findUser");
+
+    console.log("👤 User Found:", !!user);
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -71,8 +125,12 @@ Router.post("/login", async (req, res) => {
       });
     }
 
-    // compare hashed password
+    console.time("bcrypt");
     const isMatch = await bcrypt.compare(password, user.password);
+    console.timeEnd("bcrypt");
+
+    console.log("🔑 Password Match:", isMatch);
+
     if (!isMatch) {
       return res.status(400).json({
         success: false,
@@ -80,25 +138,23 @@ Router.post("/login", async (req, res) => {
       });
     }
 
-    // success response
-    // create token
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      "jayu", // Strong secret key use karo
-      { expiresIn: "24h" } // token valid for 24h days
-    );
+    const token = jwt.sign({ id: user._id, email: user.email }, "jayu", {
+      expiresIn: "24h",
+    });
+
+    console.log("✅ Login Success");
 
     res.status(200).json({
       success: true,
-      message: "Login successfully ✅",
-      token: token,
+      message: "Login successfully",
+      token,
       data: user,
     });
   } catch (err) {
-    console.log(err);
+    console.error("❌ Login Error:", err);
     res.status(500).json({
       success: false,
-      message: "Login failed ❌",
+      message: "Login failed",
       error: err,
     });
   }
@@ -131,7 +187,7 @@ Router.post("/registeruser", async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "failed t0 add students",
+      message: "failed to add students",
       error: err,
     });
   }
@@ -326,39 +382,62 @@ Router.put("/updatestaff/:id", async (req, res) => {
 //--------------------------courses page--------------------------------------------------
 //--------------------post--------------------------------------------------------
 //course crud
-Router.post("/savecourse",async(req,res)=>{
-try{
-  const {name,course,instructor}=req.body
-  const result=new coursechema(req.body)
-  const data=await result.save()
-  return res.status(201).json({
-    success:true,
-    message:"course added successfully",
-    data:data,
-  })
-}catch(err){
-  console.log(err);
-  return res.status(500).json({
-    success:false,
-    message:"failed to add course",
-    error:err,
-  })  
-}
-})
+Router.post("/savecourse", async (req, res) => {
+  try {
+    const { name, course, instructor } = req.body;
+    const result = new coursechema(req.body);
+    const data = await result.save();
+    return res.status(201).json({
+      success: true,
+      message: "course added successfully",
+      data: data,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: "failed to add course",
+      error: err,
+    });
+  }
+});
 
 //-----------get data------------------
-Router.get("/courses",auth,async(req,res)=>{
-  try{
-    const data = await coursechema.find()
-    return res.status(200).json(data)    
-  }catch(err){
+Router.get("/courses", auth, async (req, res) => {
+  try {
+    const data = await coursechema.find();
+    return res.status(200).json(data);
+  } catch (err) {
     return res.status(500).json({
-      success:false,
-      message:"failed to fetch",
-      error:err
-    })
+      success: false,
+      message: "failed to fetch",
+      error: err,
+    });
   }
-})
+});
+
+//-------------update course-------------
+//-------------update course-------------
+Router.put("/courseupdate/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const data = await coursechema.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "course updated successfully",
+      data: data,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "failed to update course",
+      error: err,
+    });
+  }
+});
 
 //-------------delete course-------------
 Router.delete("/coursedelete/:id", async (req, res) => {
@@ -369,7 +448,6 @@ Router.delete("/coursedelete/:id", async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
-
 
 //----------------------------------------------------------------------------
 // Forgot password
@@ -394,7 +472,7 @@ Router.post("/forgot-password", async (req, res) => {
       secure: false,
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        pass: process.env.EMAIL_PASS,
       },
     });
 
@@ -412,7 +490,7 @@ Router.post("/forgot-password", async (req, res) => {
     } catch (err) {
       console.error(
         "Email error, returning reset URL in response (development):",
-        err.message
+        err.message,
       );
       return res.json({
         resetURL,
@@ -451,6 +529,5 @@ Router.post("/reset-password/:token", async (req, res) => {
 //----------------------------------------------------------------------------
 
 module.exports = Router;
-
 
 //password  vzdk nofz onko pbow

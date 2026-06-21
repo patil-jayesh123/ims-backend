@@ -3,6 +3,7 @@ const app=express()
 //-------------------------------------------------------------
 //import db
 const connection=require('./config/db')
+//import schema
 const adminschema=require('./model/adminschema')
 const studentschema=require('./model/studentschem')
 const staffschema=require('./model/staffschema')
